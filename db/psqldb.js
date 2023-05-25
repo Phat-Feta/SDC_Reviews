@@ -1,26 +1,17 @@
-const { Pool } = require('pg');
-
-const pool = new Pool({
-  user: 'naru',
-  host: 'localhost',
-  database: 'sdc_reviews',
-  password: 'postgres',
-  post: 5432
-});
+const { pool } = require('./poolConnection.js');
 
 const reviewSchema =
   `CREATE TABLE IF NOT EXISTS reviews (
     review_id integer PRIMARY KEY,
-    product_id integer,
+    product integer,
     rating integer,
-    "date" timestamp,
+    date varchar,
     summary varchar,
     body varchar,
-    recommend bit,
-    reported bit,
+    recommend varchar,
+    reported varchar,
     response varchar,
     reviewer_name varchar,
-    reviewer_email varchar,
     helpfulness integer
   );`
 
@@ -130,5 +121,3 @@ pool.connect((err, client, done) => {
 
   done();
 });
-
-module.exports = { pool };
