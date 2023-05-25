@@ -52,11 +52,11 @@ pool.connect((err, client, done) => {
     })
     .catch(err => console.error(err))
 
-  // const insertPhotosQuery =
-  // `COPY photos FROM '/tmp/reviews_photos.csv' DELIMITER ',' CSV HEADER;`
-  // client.query(insertPhotosQuery)
-  //   .then(() => console.log('Photos table populated'))
-  //   .catch(err => console.error('Error populating photos table', err))
+  const insertPhotosQuery =
+  `COPY photos FROM '/tmp/reviews_photos.csv' DELIMITER ',' CSV HEADER;`
+  client.query(insertPhotosQuery)
+    .then(() => console.log('Photos table populated'))
+    .catch(err => console.error('Error populating photos table', err))
 
   const insertCharacteristicsQuery =
   `COPY characteristics FROM '/tmp/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;`
