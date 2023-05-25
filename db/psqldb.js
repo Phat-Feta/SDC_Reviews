@@ -25,11 +25,11 @@ const photoSchema =
 const metaSchema =
   `CREATE TABLE IF NOT EXISTS meta (
     product_id integer PRIMARY KEY,
-    "1" integer,
-    "2" integer,
-    "3" integer,
-    "4" integer,
-    "5" integer
+    "one" integer DEFAULT 0,
+    "two" integer DEFAULT 0,
+    "three" integer DEFAULT 0,
+    "four" integer DEFAULT 0,
+    "five" integer DEFAULT 0
   );`
 
 const recommendedSchema =
@@ -42,16 +42,19 @@ const recommendedSchema =
 const characteristicsSchema =
   `CREATE TABLE IF NOT EXISTS characteristics (
     id integer PRIMARY KEY,
-    product_id integer,
-    name varchar,
+    characteristic_id integer,
+    review_id integer,
     value integer
   );`
+
+const metaFK =
+  `ALTER TABLE meta ADD FOREIGN KEY (product_id) REFERENCES reviews (product);`
 
 const photosFK =
   `ALTER TABLE photos ADD FOREIGN KEY (review_id) REFERENCES reviews (review_id);`
 
 const characteristicsFK =
-  `ALTER TABLE characteristics ADD FOREIGN KEY (product_id) REFERENCES meta (product_id);`
+  `ALTER TABLE characteristics ADD FOREIGN KEY (review_id) REFERENCES reviews (review_id);`
 
 const recommendedFK =
   `ALTER TABLE recommended ADD FOREIGN KEY (product_id) REFERENCES meta (product_id);`
@@ -119,5 +122,13 @@ pool.connect((err, client, done) => {
     console.log('Recommended foreign key created');
   });
 
+  // client.query(metaFK, (err, result) => {
+  //   if (err) {
+  //     console.error('Error creating meta foreign key:', err);
+  //   }
+  //   console.log('Meta foreign key created');
+  // });
+  // pool.end()
+  //   .then(() => console.log('Finished database template. Pool ending.'));
   done();
 });
