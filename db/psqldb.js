@@ -47,8 +47,8 @@ const characteristicsSchema =
     value integer
   );`
 
-const metaFK =
-  `ALTER TABLE meta ADD FOREIGN KEY (product_id) REFERENCES reviews (product);`
+const reviewsIdx =
+  `CREATE INDEX idx_review_id ON reviews (product)`
 
 const photosFK =
   `ALTER TABLE photos ADD FOREIGN KEY (review_id) REFERENCES reviews (review_id);`
@@ -122,12 +122,12 @@ pool.connect((err, client, done) => {
     console.log('Recommended foreign key created');
   });
 
-  // client.query(metaFK, (err, result) => {
-  //   if (err) {
-  //     console.error('Error creating meta foreign key:', err);
-  //   }
-  //   console.log('Meta foreign key created');
-  // });
+  client.query(reviewsIdx, (err, result) => {
+    if (err) {
+      console.error('Error creating reviews index:', err);
+    }
+    console.log('Reviews index created');
+  });
   // pool.end()
   //   .then(() => console.log('Finished database template. Pool ending.'));
   done();

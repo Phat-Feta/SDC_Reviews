@@ -24,72 +24,104 @@ pool.connect((err, client, done) => {
   console.log('Connected to db successfully')
 
   client.query(tempSchema)
-    .then(console.log('Temp table created or already exists.'))
-    .catch(err => console.error('Error creating temp table:', err))
-
-  client.query('SELECT COUNT(*) FROM temp')
-    .then((res) => {
-      if (Number(res.rows.count) === 0) {
+    .then(() => {
+      console.log('Temp table created or already exists.')
+      return client.query('SELECT COUNT(*) FROM temp')
+    })
+    .then((result) => {
+      if (result.rows[0].count === '0') {
         const insertTempQuery = `COPY temp FROM '/tmp/reviews.csv' DELIMITER ',' CSV HEADER;`
-        client.query(insertTempQuery)
-          .then(() => console.log('Temp table populated'))
-          .catch((err) => console.error('Error populating temp table', err))
+        return client.query(insertTempQuery)
       }
     })
-    .catch((err) => console.error('Error counting from temp', err))
-
-  client.query('SELECT COUNT(*) FROM reviews;')
-    .then(result => {
+    .then(() => {
+      console.log('Temp table populated')
+      return client.query('SELECT COUNT(*) FROM reviews;')
+    })
+    .then((result) => {
       const reviewCount = result.rows[0].count;
       console.log(`Counted ${reviewCount} reviews`)
-      if (Number(reviewCount) === 0) {
+      if (reviewCount === '0') {
         const insertReviewsQuery =
         `INSERT INTO reviews SELECT id, product_id, rating, date, summary, body, recommend, reported, response, reviewer_name, helpfulness FROM temp`
-        client.query(insertReviewsQuery)
-          .then(() => console.log('Reviews table populated'))
-          .catch((err) => console.error('Error populating reviews table', err))
+        return client.query(insertReviewsQuery)
       }
     })
-    .catch(err => console.error(err))
+    .then(() => {
+      console.log('Reviews table populated')
+      const insertPhotosQuery =
+      `COPY photos FROM '/tmp/reviews_photos.csv' DELIMITER ',' CSV HEADER;`
+      return client.query(insertPhotosQuery)
+    })
+    .then(() => {
+      console.log('Photos table populated')
+      const insertCharacteristicsQuery =
+      `COPY characteristics FROM '/tmp/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;`
+      return client.query(insertCharacteristicsQuery)
+    })
+    .then(() => {
+      console.log('Characteristics table populated')
+      const distinctQuery =
+        `INSERT INTO meta SELECT DISTINCT product from reviews;`
+      return client.query(distinctQuery)
+    })
+    .then(() => {
+      console.log(`Meta table populated with distinct products`)
+      const oneQuery =
+      `UPDATE meta SET one=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=1);`
+      return client.query(oneQuery)
+    })
+    .then(() => {
+      console.log('updated one star ratings for all products')
+      const twoQuery =
+      `UPDATE meta SET two=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=2);`
+      return client.query(twoQuery)
+    })
+    .then(() => {
+      console.log('updated two star ratings for all products')
+      const threeQuery =
+      `UPDATE meta SET three=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=3);`
+      return client.query(threeQuery)
+    })
+    .then(() => {
+      console.log('updated three star ratings for all products')
+      const fourQuery =
+      `UPDATE meta SET four=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=4);`
+      return client.query(fourQuery)
+    })
+    .then(() => {
+      console.log('updated four star ratings for all products')
+      const fiveQuery =
+      `UPDATE meta SET five=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=5);`
+      return client.query(fiveQuery)
+    })
+    .then(() => {
+      console.log('updated five star ratings for all products')
+      const recommendedQuery =
+      `INSERT INTO recommended SELECT DISTINCT product from reviews;`
+      return client.query(recommendedQuery);
+      })
+    .then(() => {
+      console.log('Recommended table populated with distinct products')
+      const insertTrueQuery =
+      `UPDATE recommended SET "true"=(SELECT COUNT(*) FROM reviews WHERE product=recommended.product_id AND recommend='true')`
+      return client.query(insertTrueQuery);
+    })
+    .then(() => {
+      console.log('Updated recommended with true values')
+      const insertFalseQuery =
+      `UPDATE recommended SET "false"=(SELECT COUNT(*) FROM reviews WHERE product=recommended.product_id AND recommend='false')`
+      return client.query(insertFalseQuery);
+    })
+    .then(() => {
+      console.log('Updated recommended with false values')
+      console.log('Finished seeding database!')
+    })
+    // .then(() => {
+    //   return client.query('DROP TABLE temp;')
+    // })
+    .catch((err) => console.error('Error executing seed queries', err))
 
-  const insertPhotosQuery =
-  `COPY photos FROM '/tmp/reviews_photos.csv' DELIMITER ',' CSV HEADER;`
-  client.query(insertPhotosQuery)
-    .then(() => console.log('Photos table populated'))
-    .catch(err => console.error('Error populating photos table', err))
-
-  const insertCharacteristicsQuery =
-  `COPY characteristics FROM '/tmp/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;`
-  console.log('Inserting into characteristics table...')
-  client.query(insertCharacteristicsQuery)
-    .then(() => console.log('Characteristics table populated'))
-    .catch(err => console.error('Error populating characteristics table', err))
-  // const ratings = ['one','two','three','four','five']
-  // const distinctQuery =
-  //   `INSERT INTO meta SELECT DISTINCT product from reviews;`
-  // const oneQuery =
-  // `UPDATE meta SET one=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=1);`
-  // const twoQuery =
-  // `UPDATE meta SET two=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=2);`
-  // const threeQuery =
-  // `UPDATE meta SET three=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=3);`
-  // const fourQuery =
-  // `UPDATE meta SET four=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=4);`
-  // const fiveQuery =
-  // `UPDATE meta SET five=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=5);`
-  // client.query(distinctQuery)
-  //   .then(() => console.log(`Distinct products found...`))
-  //   .then(() => client.query(oneQuery))
-  //   .then(() => console.log('updated one star ratings for all products'))
-  //   .then(() => client.query(twoQuery))
-  //   .then(() => console.log('updated two star ratings for all products'))
-  //   .then(() => client.query(threeQuery))
-  //   .then(() => console.log('updated three star ratings for all products'))
-  //   .then(() => client.query(fourQuery))
-  //   .then(() => console.log('updated four star ratings for all products'))
-  //   .then(() => client.query(fiveQuery))
-  //   .then(() => console.log('updated five star ratings for all products'))
-  //   .catch(err => console.error(err))
 
   // pool.end()
   //   .then(() => console.log('Finished database seeding. Pool ending.'));
