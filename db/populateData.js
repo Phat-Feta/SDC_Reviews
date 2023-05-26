@@ -116,14 +116,11 @@ pool.connect((err, client, done) => {
     .then(() => {
       console.log('Updated recommended with false values')
       console.log('Finished seeding database!')
+      return client.query('DROP TABLE temp;')
     })
-    // .then(() => {
-    //   return client.query('DROP TABLE temp;')
-    // })
+    .then(() => {
+      pool.end();
+    })
     .catch((err) => console.error('Error executing seed queries', err))
-
-
-  // pool.end()
-  //   .then(() => console.log('Finished database seeding. Pool ending.'));
   done();
 });
