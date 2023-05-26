@@ -16,6 +16,21 @@ const tempSchema =
     helpfulness integer
   );`
 
+const charTempSchema =
+  `CREATE TABLE IF NOT EXISTS charTemp (
+    id integer PRIMARY KEY,
+    characteristic_id integer,
+    review_id integer,
+    value integer
+  );`
+
+const charNameTempSchema =
+  `CREATE TABLE IF NOT EXISTS charNameTemp (
+    id integer PRIMARY KEY,
+    product_id integer,
+    name varchar
+  );`
+
 pool.connect((err, client, done) => {
   if (err) {
     console.error('Error connecting to db ', err);
@@ -55,12 +70,36 @@ pool.connect((err, client, done) => {
     })
     .then(() => {
       console.log('Photos table populated')
+      return client.query(charTempSchema)
+    })
+    .then(() => {
+      const insertCharTempQuery =
+      `COPY charTemp FROM '/tmp/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;`
+      return client.query(insertCharTempQuery)
+    })
+    .then(() => {
+      console.log('CharTemp table populated')
+      return client.query(charNameTempSchema)
+    })
+    .then(() => {
+      const insertCharNameTempQuery =
+      `COPY charNameTemp FROM '/tmp/characteristics.csv' DELIMITER ',' CSV HEADER;`
+      return client.query(insertCharNameTempQuery)
+    })
+    .then(() => {
+      console.log('CharNameTemp table populated')
       const insertCharacteristicsQuery =
-      `COPY characteristics FROM '/tmp/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;`
+      `INSERT INTO characteristics (characteristic_id, review_id, value) SELECT characteristic_id, review_id, value FROM charTemp`
       return client.query(insertCharacteristicsQuery)
     })
     .then(() => {
       console.log('Characteristics table populated')
+      const insertCharNameQuery =
+      `UPDATE characteristics SET name=(SELECT name FROM charNameTemp WHERE id=characteristics.characteristic_id), product_id=(SELECT product_id FROM charNameTemp WHERE id=characteristics.characteristic_id);`
+      return client.query(insertCharNameQuery)
+    })
+    .then(() => {
+      console.log('Characteristics table updated')
       const distinctQuery =
         `INSERT INTO meta SELECT DISTINCT product from reviews;`
       return client.query(distinctQuery)
