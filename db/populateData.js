@@ -79,6 +79,9 @@ pool.connect((err, client, done) => {
       return client.query(insertPhotosQuery)
     })
     .then(() => {
+      const serialQuery = `SELECT SETVAL('photos_id_seq', COALESCE(MAX(id), 1)) FROM photos;`
+    })
+    .then(() => {
       console.log('Photos table populated')
       return client.query(charTempSchema)
     })
