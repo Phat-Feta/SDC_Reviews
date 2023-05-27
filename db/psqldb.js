@@ -41,7 +41,8 @@ const recommendedSchema =
 
 const characteristicsSchema =
   `CREATE TABLE IF NOT EXISTS characteristics (
-    id integer PRIMARY KEY,
+    product_id integer,
+    name varchar,
     characteristic_id integer,
     review_id integer,
     value integer

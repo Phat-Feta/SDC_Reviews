@@ -1,7 +1,11 @@
 const { pool } = require('../db//poolConnection.js')
 
-const get = () => {
-
+const get = (query) => {
+  return pool.query(query)
 }
 
-module.exports = { get }
+const post = (query) => {
+  return pool.query(query)
+}
+
+module.exports = { get, post }
