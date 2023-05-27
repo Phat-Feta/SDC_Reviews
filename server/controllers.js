@@ -7,6 +7,11 @@ const getReviews = (req, res) => {
   };
   models.getReviews(req.query.product_id, req.query.count)
     .then(({rows}) => {
+      if (req.query.sort === 'newest') {
+        rows.sort((a, b) => Number(b.date) - Number(a.date))
+      } else {
+        rows.sort((a, b) => b.helpfulness - a.helpfulness)
+      }
       body.results = rows;
     })
     .then(() => res.status(200).send(body))
