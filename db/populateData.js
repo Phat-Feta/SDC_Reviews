@@ -31,6 +31,12 @@ const charNameTempSchema =
     name varchar
   );`
 
+const charNameTempIdx =
+  `CREATE INDEX idx_id_id ON charNameTemp (id)`
+
+const charTempIdx =
+  `CREATE INDEX idx_characteristic_id ON charTemp (characteristic_id)`
+
 pool.connect((err, client, done) => {
   if (err) {
     console.error('Error connecting to db ', err);
@@ -63,6 +69,10 @@ pool.connect((err, client, done) => {
       }
     })
     .then(() => {
+      const serialQuery = `SELECT SETVAL('reviews_review_id_seq', COALESCE(MAX(review_id), 1)) FROM reviews;`
+      return client.query(serialQuery)
+    })
+    .then(() => {
       console.log('Reviews table populated')
       const insertPhotosQuery =
       `COPY photos FROM '/tmp/reviews_photos.csv' DELIMITER ',' CSV HEADER;`
@@ -73,6 +83,9 @@ pool.connect((err, client, done) => {
       return client.query(charTempSchema)
     })
     .then(() => {
+      return client.query(charTempIdx)
+    })
+    .then(() => {
       const insertCharTempQuery =
       `COPY charTemp FROM '/tmp/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;`
       return client.query(insertCharTempQuery)
@@ -80,6 +93,9 @@ pool.connect((err, client, done) => {
     .then(() => {
       console.log('CharTemp table populated')
       return client.query(charNameTempSchema)
+    })
+    .then(() => {
+      return client.query(charNameTempIdx)
     })
     .then(() => {
       const insertCharNameTempQuery =
@@ -111,31 +127,31 @@ pool.connect((err, client, done) => {
       return client.query(oneQuery)
     })
     .then(() => {
-      console.log('updated one star ratings for all products')
+      console.log('Updated one star ratings for all products')
       const twoQuery =
       `UPDATE meta SET two=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=2);`
       return client.query(twoQuery)
     })
     .then(() => {
-      console.log('updated two star ratings for all products')
+      console.log('Updated two star ratings for all products')
       const threeQuery =
       `UPDATE meta SET three=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=3);`
       return client.query(threeQuery)
     })
     .then(() => {
-      console.log('updated three star ratings for all products')
+      console.log('Updated three star ratings for all products')
       const fourQuery =
       `UPDATE meta SET four=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=4);`
       return client.query(fourQuery)
     })
     .then(() => {
-      console.log('updated four star ratings for all products')
+      console.log('Updated four star ratings for all products')
       const fiveQuery =
       `UPDATE meta SET five=(SELECT COUNT(*) FROM reviews WHERE product=meta.product_id AND rating=5);`
       return client.query(fiveQuery)
     })
     .then(() => {
-      console.log('updated five star ratings for all products')
+      console.log('Updated five star ratings for all products')
       const recommendedQuery =
       `INSERT INTO recommended SELECT DISTINCT product from reviews;`
       return client.query(recommendedQuery);
@@ -154,8 +170,17 @@ pool.connect((err, client, done) => {
     })
     .then(() => {
       console.log('Updated recommended with false values')
-      console.log('Finished seeding database!')
       return client.query('DROP TABLE temp;')
+    })
+    .then(()=> {
+      return client.query('DROP TABLE charnametemp;')
+    })
+    .then(()=> {
+      return client.query('DROP TABLE chartemp;')
+    })
+    .then(() => {
+      console.log('Dropped temporary tables')
+      console.log('Finished seeding database!')
     })
     .then(() => {
       pool.end();
