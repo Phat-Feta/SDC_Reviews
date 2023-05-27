@@ -4,5 +4,8 @@ const get = (query) => {
   return pool.query(query)
 }
 
+const post = (query) => {
+  return pool.query(query)
+}
 
-module.exports = { get }
+module.exports = { get, post }

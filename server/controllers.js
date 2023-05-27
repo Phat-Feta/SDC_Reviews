@@ -1,32 +1,39 @@
 const models = require('./models.js');
 
 const getReviews = (req, res) => {
-  console.log(req.query);
-  const query =
-  `SELECT * FROM reviews WHERE product=${Number(req.query.product_id)} LIMIT ${Number(req.query.counts) || 5};`
-  models.get(query)
-    .then(({rows}) => {res.status(201).send(rows)})
+  let body = {
+    product: req.query.product_id,
+    count: req.query.count || 5
+  };
+  const queryReviews =
+  `SELECT reviews.review_id, reviews.rating, reviews.date, reviews.summary, reviews.body, reviews.recommend, reviews.response, reviews.reviewer_name, reviews.helpfulness, ARRAY_AGG(photos.url) AS photos FROM reviews JOIN photos ON reviews.review_id=photos.review_id WHERE reviews.product=${Number(req.query.product_id)} GROUP BY reviews.review_id LIMIT ${Number(req.query.count) || 5};`
+  models.get(queryReviews)
+    .then(({rows}) => {
+      body.results = rows;
+    })
+    .then(() => res.status(201).send(body))
     .catch(err => res.status(500).send(err))
 }
 
 const getMeta = (req, res) => {
-  let body = {
-    ratings: {},
-    recommended: {},
-    characteristics: {}
-  };
+  let body = {};
   const queryMeta =
-  `SELECT * FROM meta WHERE product_id=${Number(req.query.product_id)};`
+  `SELECT meta.product_id,
+    json_build_object(
+      '1', meta.one,
+      '2', meta.two,
+      '3', meta.three,
+      '4', meta.four,
+      '5', meta.five
+    ) AS ratings,
+    json_build_object(
+      'true', recommended.true,
+      'false', recommended.false
+    ) AS recommended
+      FROM meta JOIN recommended ON meta.product_id=recommended.product_id WHERE meta.product_id=${Number(req.query.product_id)};`
   models.get(queryMeta)
     .then(({rows}) => {
-      body.product_id = rows[0].product_id;
-      body.ratings = {
-        '1': rows[0].one,
-        '2': rows[0].two,
-        '3': rows[0].three,
-        '4': rows[0].four,
-        '5': rows[0].five
-      }
+      body = rows[0];
     })
     .then(() => {
       const queryCharacteristics =
@@ -34,6 +41,7 @@ const getMeta = (req, res) => {
       return models.get(queryCharacteristics)
     })
     .then(({rows}) => {
+      body.characteristics = {};
       let chars = {
         Quality: {id: 0, value: []},
         Comfort: {id: 0, value: []},
@@ -55,17 +63,15 @@ const getMeta = (req, res) => {
         }
       }
     })
-    .then(() => {
-      const queryRecommended =
-      `SELECT * FROM recommended WHERE product_id=${Number(req.query.product_id)};`
-      return models.get(queryRecommended);
-    })
-    .then(({rows}) => {
-      body.recommended.true = rows[0].true;
-      body.recommended.false = rows[0].false;
-    })
     .then(() => res.status(201).send(body))
     .catch(err => res.status(500).send(err))
 }
 
-module.exports = { getReviews, getMeta }
+const postReview = (req, res) => {
+  // const { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = req.body;
+  // const queryNewReview =
+  // `INSERT INTO reviews (product, rating, date, summary, body, recommend,reviewer_name) VALUES(${product_id}, ${rating}, ${Data.now()}, ${summary}, ${body}, ${recommend.toString()}, ${name});`
+  // res.status(204).send();
+}
+
+module.exports = { getReviews, getMeta, postReview }
