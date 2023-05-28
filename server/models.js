@@ -2,7 +2,12 @@ const { pool } = require('../db//poolConnection.js')
 
 const getReviews = (product_id, count) => {
   const queryReviews =
-  `SELECT reviews.review_id, reviews.rating, reviews.date, reviews.summary, reviews.body, reviews.recommend, reviews.response, reviews.reviewer_name, reviews.helpfulness, ARRAY_AGG(photos.url) AS photos FROM reviews JOIN photos ON reviews.review_id=photos.review_id WHERE reviews.product=${Number(product_id)} GROUP BY reviews.review_id LIMIT ${Number(count) || 5};`
+  `SELECT reviews.review_id, reviews.rating, reviews.date, reviews.summary, reviews.body, reviews.recommend, reviews.response, reviews.reviewer_name, reviews.helpfulness,
+  CASE
+    WHEN COUNT(photos.url) = 0 THEN ARRAY[]::varchar[]
+    ELSE ARRAY_AGG(photos.url)
+  END AS photos
+  FROM reviews LEFT JOIN photos ON reviews.review_id=photos.review_id WHERE reviews.product=${Number(product_id)} GROUP BY reviews.review_id LIMIT ${Number(count) || 5};`
   return pool.query(queryReviews)
 }
 
@@ -34,6 +39,7 @@ const postNewReview = (form) => {
   const { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = form;
   const queryNewReview =
   `INSERT INTO reviews (product, rating, date, summary, body, recommend, reviewer_name) VALUES(${product_id}, ${rating}, ${Date.now()}, '${summary}', '${body}', '${recommend.toString()}', '${name}');`
+  console.log(queryNewReview);
   return pool.query(queryNewReview)
 }
 

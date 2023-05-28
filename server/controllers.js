@@ -15,6 +15,7 @@ const getReviews = (req, res) => {
       rows.forEach(review => {
         let date = new Date(Number(review.date));
         review.date = date.toISOString();
+        review.recommend === 'true' ? review.recommend = true : review.recommend = false;
       })
       body.results = rows;
     })
@@ -65,17 +66,18 @@ const postReview = (req, res) => {
       return models.postNewCharacteristics(req.body)
     })
     .then(() => {
-      return models.putRecommend(req.body);
+      return models.putRecommend(req.body)
     })
     .then(() => {
-      return models.postNewPhotos(req.body)
+      if (req.body.photos.length) {
+        return models.postNewPhotos(req.body)
+      }
     })
     .then(()=> {
       return models.putMeta(req.body)
     })
     .then(() => {
-      console.log('New review form submitted.')
-      res.status(201).send();
+      res.status(201).send()
     })
     .catch(err => res.status(500).send(err))
 
