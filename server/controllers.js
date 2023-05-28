@@ -56,10 +56,37 @@ const getMeta = (req, res) => {
 }
 
 const postReview = (req, res) => {
-  // const { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = req.body;
-  // const queryNewReview =
-  // `INSERT INTO reviews (product, rating, date, summary, body, recommend, reviewer_name) VALUES(${product_id}, ${rating}, ${Data.now()}, ${summary}, ${body}, ${recommend.toString()}, ${name});`
-  // res.status(201).send();
+  models.postNewReview(req.body)
+    .then(() => {
+      return models.postNewCharacteristics(req.body)
+    })
+    .then(() => {
+      return models.putRecommend(req.body);
+    })
+    .then(() => {
+      return models.postNewPhotos(req.body)
+    })
+    .then(()=> {
+      return models.putMeta(req.body)
+    })
+    .then(() => {
+      console.log('New review form submitted.')
+      res.status(201).send();
+    })
+    .catch(err => res.status(500).send(err))
+
 }
 
-module.exports = { getReviews, getMeta, postReview }
+const putHelpful = (req, res) => {
+  models.putReviewHelpful(req.params.review_id)
+    .then(() => res.status(201).send())
+    .catch(err => res.status(500).send(err))
+}
+
+const putReport = (req, res) => {
+  models.putReviewReport(req.params.review_id)
+    .then(() => res.status(201).send())
+    .catch(err => res.status(500).send(err))
+}
+
+module.exports = { getReviews, getMeta, postReview, putHelpful, putReport }

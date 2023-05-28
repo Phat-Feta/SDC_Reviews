@@ -17,7 +17,7 @@ const reviewSchema =
 
 const photoSchema =
   `CREATE TABLE IF NOT EXISTS photos (
-    id integer PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     review_id integer,
     url varchar
   );`
