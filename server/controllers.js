@@ -5,40 +5,23 @@ const getReviews = (req, res) => {
     product: req.query.product_id,
     count: req.query.count || 5
   };
-  const queryReviews =
-  `SELECT reviews.review_id, reviews.rating, reviews.date, reviews.summary, reviews.body, reviews.recommend, reviews.response, reviews.reviewer_name, reviews.helpfulness, ARRAY_AGG(photos.url) AS photos FROM reviews JOIN photos ON reviews.review_id=photos.review_id WHERE reviews.product=${Number(req.query.product_id)} GROUP BY reviews.review_id LIMIT ${Number(req.query.count) || 5};`
-  models.get(queryReviews)
+  models.getReviews(req.query.product_id, req.query.count)
     .then(({rows}) => {
       body.results = rows;
     })
-    .then(() => res.status(201).send(body))
+    .then(() => res.status(200).send(body))
     .catch(err => res.status(500).send(err))
 }
 
 const getMeta = (req, res) => {
   let body = {};
-  const queryMeta =
-  `SELECT meta.product_id,
-    json_build_object(
-      '1', meta.one,
-      '2', meta.two,
-      '3', meta.three,
-      '4', meta.four,
-      '5', meta.five
-    ) AS ratings,
-    json_build_object(
-      'true', recommended.true,
-      'false', recommended.false
-    ) AS recommended
-      FROM meta JOIN recommended ON meta.product_id=recommended.product_id WHERE meta.product_id=${Number(req.query.product_id)};`
-  models.get(queryMeta)
+
+  models.getMeta(req.query.product_id)
     .then(({rows}) => {
       body = rows[0];
     })
     .then(() => {
-      const queryCharacteristics =
-      `SELECT * FROM characteristics WHERE product_id=${Number(req.query.product_id)};`
-      return models.get(queryCharacteristics)
+      return models.getCharacteristics(req.query.product_id)
     })
     .then(({rows}) => {
       body.characteristics = {};
@@ -63,15 +46,15 @@ const getMeta = (req, res) => {
         }
       }
     })
-    .then(() => res.status(201).send(body))
+    .then(() => res.status(200).send(body))
     .catch(err => res.status(500).send(err))
 }
 
 const postReview = (req, res) => {
   // const { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = req.body;
   // const queryNewReview =
-  // `INSERT INTO reviews (product, rating, date, summary, body, recommend,reviewer_name) VALUES(${product_id}, ${rating}, ${Data.now()}, ${summary}, ${body}, ${recommend.toString()}, ${name});`
-  // res.status(204).send();
+  // `INSERT INTO reviews (product, rating, date, summary, body, recommend, reviewer_name) VALUES(${product_id}, ${rating}, ${Data.now()}, ${summary}, ${body}, ${recommend.toString()}, ${name});`
+  // res.status(201).send();
 }
 
 module.exports = { getReviews, getMeta, postReview }
