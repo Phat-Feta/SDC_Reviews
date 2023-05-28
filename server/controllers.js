@@ -12,6 +12,10 @@ const getReviews = (req, res) => {
       } else {
         rows.sort((a, b) => b.helpfulness - a.helpfulness)
       }
+      rows.forEach(review => {
+        let date = new Date(Number(review.date));
+        review.date = date.toISOString();
+      })
       body.results = rows;
     })
     .then(() => res.status(200).send(body))
