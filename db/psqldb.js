@@ -2,17 +2,17 @@ const { pool } = require('./poolConnection.js');
 
 const reviewSchema =
   `CREATE TABLE IF NOT EXISTS reviews (
-    review_id integer PRIMARY KEY,
+    review_id SERIAL PRIMARY KEY,
     product integer,
     rating integer,
     date varchar,
     summary varchar,
     body varchar,
     recommend varchar,
-    reported varchar,
+    reported varchar DEFAULT 'false',
     response varchar,
     reviewer_name varchar,
-    helpfulness integer
+    helpfulness integer DEFAULT 0
   );`
 
 const photoSchema =
@@ -54,8 +54,8 @@ const reviewsIdx =
 const photosFK =
   `ALTER TABLE photos ADD FOREIGN KEY (review_id) REFERENCES reviews (review_id);`
 
-const characteristicsFK =
-  `ALTER TABLE characteristics ADD FOREIGN KEY (review_id) REFERENCES reviews (review_id);`
+// const characteristicsFK =
+//   `ALTER TABLE characteristics ADD FOREIGN KEY (review_id) REFERENCES meta (review_id);`
 
 const recommendedFK =
   `ALTER TABLE recommended ADD FOREIGN KEY (product_id) REFERENCES meta (product_id);`
@@ -109,12 +109,12 @@ pool.connect((err, client, done) => {
     console.log('Photos foreign key created');
   });
 
-  client.query(characteristicsFK, (err, result) => {
-    if (err) {
-      console.error('Error creating characteristics foreign key:', err);
-    }
-    console.log('Characteristics foreign key created');
-  });
+  // client.query(characteristicsFK, (err, result) => {
+  //   if (err) {
+  //     console.error('Error creating characteristics foreign key:', err);
+  //   }
+  //   console.log('Characteristics foreign key created');
+  // });
 
   client.query(recommendedFK, (err, result) => {
     if (err) {
