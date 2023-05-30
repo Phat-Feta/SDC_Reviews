@@ -34,24 +34,26 @@ const getMeta = (req, res) => {
       return models.getCharacteristics(req.query.product_id)
     })
     .then(({rows}) => {
-      body.characteristics = {};
-      let chars = {
-        Quality: {id: 0, value: []},
-        Comfort: {id: 0, value: []},
-        Fit: {id: 0, value: []},
-        Length: {id: 0, value: []},
-        Width: {id: 0, value: []},
-        Size: {id: 0, value: []}
-      };
-      for (let i = 0; i < rows.length; i++) {
-        chars[rows[i].name].value.push(rows[i].value)
-        chars[rows[i].name].id = rows[i].characteristic_id
-      }
-      for (var key in chars) {
-        if (chars[key].id) {
-          body.characteristics[key] = {
-            id: chars[key].id,
-            value: chars[key].value.reduce((a,b) => a+b)/chars[key].value.length
+      if (body) {
+        body.characteristics = {};
+        let chars = {
+          Quality: {id: 0, value: []},
+          Comfort: {id: 0, value: []},
+          Fit: {id: 0, value: []},
+          Length: {id: 0, value: []},
+          Width: {id: 0, value: []},
+          Size: {id: 0, value: []}
+        };
+        for (let i = 0; i < rows.length; i++) {
+          chars[rows[i].name].value.push(rows[i].value)
+          chars[rows[i].name].id = rows[i].characteristic_id
+        }
+        for (var key in chars) {
+          if (chars[key].id) {
+            body.characteristics[key] = {
+              id: chars[key].id,
+              value: chars[key].value.reduce((a,b) => a+b)/chars[key].value.length
+            }
           }
         }
       }
@@ -94,5 +96,6 @@ const putReport = (req, res) => {
     .then(() => res.status(201).send())
     .catch(err => res.status(500).send(err))
 }
+
 
 module.exports = { getReviews, getMeta, postReview, putHelpful, putReport }

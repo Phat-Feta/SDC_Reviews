@@ -191,3 +191,4 @@ pool.connect((err, client, done) => {
     .catch((err) => console.error('Error executing seed queries', err))
   done();
 });
+
