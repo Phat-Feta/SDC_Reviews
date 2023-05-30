@@ -1,0 +1,28 @@
+{
+  "name": "sdc_reviews",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "server": "npx nodemon --watch server server/index.js",
+    "create": "node ./db/psqldb.js",
+    "seed": "node ./db/populateData.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Phat-Feta/SDC_Reviews.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Phat-Feta/SDC_Reviews/issues"
+  },
+  "homepage": "https://github.com/Phat-Feta/SDC_Reviews#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.2.0",
+    "pg": "^8.11.0"
+  }
+}
