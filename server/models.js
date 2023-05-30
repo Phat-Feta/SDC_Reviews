@@ -29,6 +29,7 @@ const getMeta = (product_id) => {
   return pool.query(queryMeta)
 }
 
+
 const getCharacteristics = (product_id) => {
   const queryCharacteristics =
   `SELECT * FROM characteristics WHERE product_id=${Number(product_id)};`
@@ -39,7 +40,6 @@ const postNewReview = (form) => {
   const { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = form;
   const queryNewReview =
   `INSERT INTO reviews (product, rating, date, summary, body, recommend, reviewer_name) VALUES(${product_id}, ${rating}, ${Date.now()}, '${summary}', '${body}', '${recommend.toString()}', '${name}');`
-  console.log(queryNewReview);
   return pool.query(queryNewReview)
 }
 
@@ -51,6 +51,7 @@ const postNewCharacteristics = (form) => {
   `SELECT review_id FROM characteristics ORDER BY review_id DESC LIMIT 1`
   pool.query(queryLatestReview)
     .then(({rows}) => {
+      console.log('got latest review', rows[0].review_id)
       review_id = Number(rows[0].review_id) + 1
     })
     .then(() => {
@@ -59,6 +60,7 @@ const postNewCharacteristics = (form) => {
       return pool.query(queryCharNames)
     })
     .then(({rows}) => {
+      console.log('got char names', rows[0])
       const charValues = rows.map((char) => {
         return `(${product_id}, '${char.name}', ${char.characteristic_id}, ${review_id}, ${characteristics[char.characteristic_id]})`
       })

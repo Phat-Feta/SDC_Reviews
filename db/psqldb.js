@@ -51,14 +51,24 @@ const characteristicsSchema =
 const reviewsIdx =
   `CREATE INDEX idx_review_id ON reviews (product)`
 
+const photosIdx =
+  `CREATE INDEX idx_photo_id ON photos (review_id)`
+
+const metaIdx =
+  `CREATE INDEX idx_meta_id ON meta (product_id)`
+
+const charIdx =
+  `CREATE INDEX idx_char_id ON characteristics (product_id)`
+
+const recommendIdx =
+  `CREATE INDEX idx_recommend_id ON recommended (product_id)`
+
 const photosFK =
   `ALTER TABLE photos ADD FOREIGN KEY (review_id) REFERENCES reviews (review_id);`
 
-// const characteristicsFK =
-//   `ALTER TABLE characteristics ADD FOREIGN KEY (review_id) REFERENCES meta (review_id);`
-
 const recommendedFK =
   `ALTER TABLE recommended ADD FOREIGN KEY (product_id) REFERENCES meta (product_id);`
+
 
 pool.connect((err, client, done) => {
   if (err) {
@@ -109,13 +119,6 @@ pool.connect((err, client, done) => {
     console.log('Photos foreign key created');
   });
 
-  // client.query(characteristicsFK, (err, result) => {
-  //   if (err) {
-  //     console.error('Error creating characteristics foreign key:', err);
-  //   }
-  //   console.log('Characteristics foreign key created');
-  // });
-
   client.query(recommendedFK, (err, result) => {
     if (err) {
       console.error('Error creating recommended foreign key:', err);
@@ -129,7 +132,34 @@ pool.connect((err, client, done) => {
     }
     console.log('Reviews index created');
   });
-  // pool.end()
-  //   .then(() => console.log('Finished database template. Pool ending.'));
+
+  client.query(photosIdx, (err, result) => {
+    if (err) {
+      console.error('Error creating photos index:', err);
+    }
+    console.log('Photos index created');
+  });
+
+  client.query(metaIdx, (err, result) => {
+    if (err) {
+      console.error('Error creating meta index:', err);
+    }
+    console.log('Meta index created');
+  });
+
+  client.query(recommendIdx, (err, result) => {
+    if (err) {
+      console.error('Error creating recommended index:', err);
+    }
+    console.log('Recommended index created');
+  });
+
+  client.query(charIdx, (err, result) => {
+    if (err) {
+      console.error('Error creating characteristics index:', err);
+    }
+    console.log('Characteristics index created');
+  });
+
   done();
 });
